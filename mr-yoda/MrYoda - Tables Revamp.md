@@ -1,0 +1,423 @@
+- **Date**: 2025-12-16  
+- **Owner**: Lakshmi Pravallika Kodavati
+- **Scope**:Tables which are deleted in Mr.Yoda
+   
+## 1. campaigns.ts :
+removed the table because this table is not used anywhere.
+Removed Schema :
+        
+import { pgTable,boolean, serial, text, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core";
+export const screenEnum = pgEnum('screen_type', ['Mobile', 'Web']);
+
+
+// Define the schema for the campaigns table
+export const campaigns = pgTable('campaigns', {
+    id: serial('id').unique(),
+    guid: uuid("guid").primaryKey(),
+    title: text("title"),
+    sub_title : text('sub_title'),
+    is_active: boolean("is_active").default(true),
+    icon : text("icon"),
+    screen_type : screenEnum("screen_type"),
+    screen_location : text("screen_location"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+    deleted_at: timestamp("deleted_at")
+});
+
+export type CampaignsTable = typeof campaigns;
+export type Campaigns = typeof campaigns.$inferSelect;
+export type NewCampaigns = typeof campaigns.$inferInsert;
+
+
+## 2. coupon_logs.ts :
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { numeric, pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { users } from "./users";
+
+export const coupon_logs = pgTable("coupon_logs", {
+    id: serial("id").unique(),
+    guid: uuid("guid").primaryKey(), 
+    user_id: uuid("user_id").notNull().references(() => users.guid),                   
+    cart_amount: numeric("cart_amount"),   
+    discount_amount: numeric("discount_amount"), 
+    redeem_date: timestamp("redeem_date"),         
+    test_id: uuid("test_id"),                       
+    package_id: uuid("package_id"),                 
+    vertical_name: text("vertical_name"),           
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),  
+});
+export type CouponLogsTable = typeof coupon_logs;
+export type CouponLog = typeof coupon_logs.$inferSelect;
+export type NewCouponLog = typeof coupon_logs.$inferInsert;
+
+
+## 3. customerDoctor.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+export const customerDoctor = pgTable("customer_doctor", {
+  id: serial("id").unique(),
+  guid: uuid("guid").notNull().primaryKey(),
+  doctor_name:text("doctor_name").notNull(),
+  specialization:text("specialization"),
+  hospital_name:text("hospital_name").notNull(),
+  address:text("address").notNull(),
+  mobile:text("mobile"),
+  created_at:timestamp("created_at").defaultNow(),
+  updated_at:timestamp("updated_at").defaultNow(),
+  deleted_at:timestamp("deleted_at"),
+})
+
+export type CustomerDoctorTable = typeof customerDoctor;
+export type CustomerDoctor = typeof customerDoctor.$inferSelect;
+export type NewCustomerDoctor = typeof customerDoctor.$inferInsert;
+
+
+## 4. dnadecoder_panels.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable,boolean, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+// Define the schema for the dna_decoder_panels table
+export const DnaDecoderPanelsSchema = pgTable('dna_decoder_panels', {
+    id: serial('id').unique(),
+    guid: uuid("guid").primaryKey(),
+    title: text("title").notNull().unique(),
+    description: text("description").notNull(),
+    is_panel_active: boolean("is_panel_active").default(true),
+    navigation_url : text("navigation_url"),
+    back_ground_color: text("back_ground_color"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+    deleted_at: timestamp("deleted_at")
+});
+
+// Define types for the schema
+export type PanelTable = typeof DnaDecoderPanelsSchema;
+export type Panel = typeof DnaDecoderPanelsSchema.$inferSelect;
+export type NewPanel = typeof DnaDecoderPanelsSchema.$inferInsert;
+
+## 5. doctorNeftDetails.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable, serial, uuid, text, timestamp, boolean } from "drizzle-orm/pg-core";
+
+export const doctorNeftDetails = pgTable("doctor_neft_details", {
+  id: serial("id").primaryKey(),
+  guid: uuid("guid").defaultRandom().notNull().unique(),
+  holderName: text("holder_name").notNull(),
+  accountNumber: text("account_number").notNull(),
+  bankName: text("bank_name").notNull(),
+  ifscCode: text("ifsc_code").notNull(),
+  accountType: text("account_type").notNull(),
+  doctorId: uuid("doctor_id").notNull(),
+  upiId: text("upi_id"),
+  upiName: text("upi_name"),
+  isDeleted: boolean("is_deleted").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
+## 6. doctorReferralPayments.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable, uuid, serial, numeric, timestamp, pgEnum, boolean, text, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { users } from "./users";
+import { doctors } from "./doctors";
+import { order } from "./order";
+
+// Enum for payment status
+export const referralPaymentStatus = pgEnum("doctor_referral_payment_status", [
+    "PENDING",
+    "COMPLETED",
+    "FAILED",
+]);
+
+export const doctorReferralPayments = pgTable("doctor_referrals_payments", {
+    id: serial("id").primaryKey(),
+    doctor_id: uuid("doctor_id").notNull().references(() => doctors.guid),
+    referral_amount: numeric("referral_amount", { precision: 10, scale: 2 }).notNull(),
+    payment_status: referralPaymentStatus("payment_status").default("PENDING").notNull(),
+    payment_completed: boolean("payment_completed").default(false),
+    remarks: text("remarks"),
+    user_id: uuid("user_id").references(() => users.guid),
+    created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deleted_at: timestamp("deleted_at"),
+    paid_at: timestamp("paid_at", { withTimezone: true }),
+    settled_by: uuid("settled_by").references(() => users.guid),
+    order_id: uuid("order_id").references(() => order.guid),
+    referral_percentages: jsonb("referral_percentages")
+    .$type<{ test: string | null; package: string | null; fetal_medicine: string | null }>()
+});
+
+// Define the types for the DoctorReferralPaymentTable
+
+export type DoctorReferralPaymentTable = typeof doctorReferralPayments;
+export type DoctorReferralPayment = typeof doctorReferralPayments.$inferSelect;
+export type NewDoctorReferralPayment = typeof doctorReferralPayments.$inferInsert;
+
+
+// Define the Relations for the DoctorReferralPaymentTable
+
+export const paymentRelations = relations(doctorReferralPayments, ({ one }) => ({
+  user_id: one(users, {
+    fields: [doctorReferralPayments.user_id],
+    references: [users.guid],
+  }),
+  doctor_id: one(doctors, {
+    fields: [doctorReferralPayments.doctor_id],
+    references: [doctors. guid],
+  }),
+  settled_by: one(users, {
+    fields: [doctorReferralPayments.settled_by],
+    references: [users.guid],
+  }),
+  order_id: one(order, {
+    fields: [doctorReferralPayments.order_id],
+    references: [order.guid],
+  })
+}))
+
+
+## 7. hospitals.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+export const Hospitals = pgTable('hospitals',{
+       id: serial('id').unique(),
+       guid: uuid("guid").primaryKey(),
+       name: text("name"),
+       address: text("address"),
+       email: text("email"),
+       mobile: text("mobile"),
+       type: text("hospital_type"),
+       city: text("city"),
+       state: text("state"),
+       country: text("country"),
+       zipcode: text("zipcode"),
+       status: text("status").default("Active"), 
+       created_at: timestamp("created_at").defaultNow(),
+       deleted_at: timestamp("deleted_at")
+})
+
+export type HospitalsTable=typeof Hospitals;
+export type Hospitals=typeof Hospitals.$inferSelect;
+export type NewHospitals=typeof Hospitals.$inferInsert;
+
+
+## 8. images.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+export const imageSchema = pgTable('image',{
+    id: serial('id').unique(),
+    guid: uuid("guid").primaryKey(),
+    name: text("name").notNull().unique(),
+    imageUrl: text("image").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+    deleted_at: timestamp("deleted_at")
+})
+
+export type ImageTable=typeof imageSchema;
+export type Image=typeof imageSchema.$inferSelect;
+export type NewImage=typeof imageSchema.$inferInsert;
+
+
+## 9. itdoslab_reports_transaction.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import {
+  pgTable,
+  serial,
+  uuid,
+  text,
+  timestamp,
+  boolean,
+  numeric,
+  integer
+} from "drizzle-orm/pg-core";
+
+export const lab_report_transactions = pgTable("lab_report_transactions", {
+  id: serial("id").unique(),
+  guid: uuid("guid").notNull().primaryKey(),
+  ledger_transaction_id: integer("ledger_transaction_id"),
+  visit_id: text("visit_id"),
+  date: timestamp("date"),
+  patient_id: text("patient_id"),
+  patient_id_interface: text("patient_id_interface"),
+  patient_name: text("patient_name"),
+  age: text("age"),
+  gender: text("gender"),
+  panel_id: integer("panel_id"),
+  panel_name: text("panel_name"),
+  adjustment_date: timestamp("adjustment_date"),
+  doctor_id: integer("doctor_id"),
+  doctor_name: text("doctor_name"),
+  created_by: text("created_by"),
+  created_date: timestamp("created_date"),
+  gross_amount: numeric("gross_amount"),
+  discount_on_total: numeric("discount_on_total"),
+  net_amount: numeric("net_amount"),
+  adjustment: numeric("adjustment"),
+  panel_code: text("panel_code"),
+  company_name: text("company_name"),
+  date_from: timestamp("date_from"),
+  date_to: timestamp("date_to"),
+  panel_user_id: text("panel_user_id"),
+  tag_processing_lab_id: integer("tag_processing_lab_id"),
+  tag_processing_lab: text("tag_processing_lab"),
+  tag_business_lab_id: integer("tag_business_lab_id"),
+  tag_business_lab: text("tag_business_lab"),
+  centre_type_1_id: integer("centre_type_1_id"),
+  centre_type_1: text("centre_type_1"),
+  report_urls: text("report_urls").array() 
+});
+
+
+
+## 10. order_time_slots.ts :
+
+only cretaed the file name there is no schema in this file ,so deleted the empty file.
+
+## 11. pgx.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { pgTable, serial, uuid, json, text, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { users } from "./users";
+import { relations } from 'drizzle-orm';
+import { MedicalHistoryDetails, MedicationHistoryDetails } from '../../types/app.types';
+
+export const relationEnum = pgEnum('relation', ['Self', 'Father', 'Mother', 'Spouse', 'Children']);
+
+/**
+ * Pgx table definition
+*/
+export const pgx = pgTable("pgx", {
+    id: serial('id').unique(),
+    guid: uuid("guid").notNull().primaryKey(),
+    user_id: uuid("user_id").notNull().references(() => users.guid),
+    relation : relationEnum("relation").default("Self"),
+    first_name : text("first_name"),
+    last_name : text("last_name"),
+    gender: text("gender"),
+    dob: text("dob"),
+    address : text("address"),
+    mobile: text("mobile").notNull(),
+    country_code: text("country_code").notNull(),
+    referring_dr: text("referring_dr"),
+    date_of_collection: text("date_of_collection"),
+    height: text("height"),
+    weight: text("weight"),
+    medical_history: json('medical_history').$type<MedicalHistoryDetails[]>(),
+    medication_history: json('medication_history').$type<MedicationHistoryDetails[]>(),
+    prescription: text("prescription").array(),
+    other_concerns: text("other_concerns"),
+    city : text("city"),
+    state : text("state"),
+    pincode : text("pincode"),
+    created_by:uuid("created_by").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+    deleted_at: timestamp("deleted_at")
+  });
+  
+
+/**
+ * Type definitions for Cart table
+*/
+export type PgxTable = typeof pgx;
+export type Pgx = typeof pgx.$inferSelect;
+export type NewPgx = typeof pgx.$inferInsert;
+
+/**
+* Define relationships for Cart table
+*/
+export const pgxRelations = relations(pgx,({one})=>({
+  user: one(users, {
+    fields: [pgx.user_id],
+    references: [users.guid],
+  }),
+}))
+
+
+## 12. service_history.ts :
+
+removed the table because this table is not used anywhere.
+Removed Schema:
+
+import { relations } from 'drizzle-orm';
+import { pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { familymembers } from './family_members';
+import { users } from "./users";
+
+/**
+ * Cart table definition
+*/
+export const service_history = pgTable("service_history", {
+  id: serial('id').unique(),
+  guid: uuid("guid").notNull().primaryKey(),
+  user_id: uuid("user_id").notNull().references(() => users.guid),
+  family_member_id: uuid("family_member_id").references(() => familymembers.guid),
+  service_started_at: timestamp("service_started_at"),
+  service_expired_at: timestamp("service_expired_at"),
+  service_id: text("service_id").notNull(),
+  service_type: text("service_type").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+  deleted_at: timestamp('deleted_at', { precision: 6, withTimezone: true })
+});
+
+/**
+ * Type definitions for Cart table
+*/
+export type ServiceHistoryTable = typeof service_history;
+export type ServiceHistory = typeof service_history.$inferSelect;
+export type NewServiceHistory = typeof service_history.$inferInsert;
+
+/**
+* Define relationships for Cart table
+*/
+export const cartRelations = relations(service_history, ({ one }) => ({
+  user: one(users, {
+    fields: [service_history.user_id],   
+    references: [users.guid],
+  }),
+  familymembers: one(familymembers, {
+    fields: [service_history.family_member_id],   
+    references: [familymembers.guid],
+  }),
+}))
+
+
+
+
+
+
+
+
+
+
+
+
+

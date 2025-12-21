@@ -1,0 +1,331 @@
+- **Date**: 2025-12-19  
+- **Owner**: Lakshmi Pravallika Kodavati
+- **Scope**: Membership Tables explanation
+
+## 1. brands.ts :
+
+This table is used to store the brand data
+
+Schema:
+-------
+
+import { boolean, numeric, pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+
+export const brands = pgTable("brand", {
+  id: serial('id').unique(),
+  Guid: uuid("Guid").primaryKey(),
+  title: text('title').notNull(),
+  discount_rate: numeric('discount_rate', { precision: 3, scale: 2 }).notNull(),
+  reward_percent: numeric('reward_percent', { precision: 3, scale: 2 }),
+  icon : text('icon'),
+  tag_line : text('tag_line'),
+  custom_order_sort : numeric('custom_order_sort'),
+  is_active: boolean("is_active").default(true),
+  created_by: text('created_by').notNull(),
+  updated_by: text('updated_by'),
+  deleted_by: text('deleted_by'),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true })
+})
+
+export type BrandTable = typeof brands;
+export type Brand = typeof brands.$inferSelect;
+export type NewBrand = typeof brands.$inferInsert;
+ 
+explanation: 
+------------
+1. **id** - Auto-generated sequential number with unique value (SERIAL type).
+2. **Guid** - UUID (Universally Unique Identifier), serves as the primary key for each row.
+3. **title** - Brand name field (required).
+4. **discount_rate** - Discount percentage offered by the brand to member users (required, format: X.XX).
+5. **reward_percent** - Rewards percentage that members earn when purchasing from this brand (optional, format: X.XX).
+6. **icon** - URL or path to the brand's icon/logo image (optional).
+7. **tag_line** - Brand slogan or tagline text (optional).
+8. **custom_order_sort** - Numeric value used for custom sorting order of brands in the UI (optional).
+9. **is_active** - Boolean flag indicating if the brand is active/visible (true) or inactive/hidden (false). Defaults to true.
+
+## 2. customer.ts :
+
+This table is used to store the customer data
+
+Schema:
+-------
+
+import { serial, timestamp, uuid, varchar, pgTable, date, text } from "drizzle-orm/pg-core";
+import { membershipData } from "./membershipData";
+
+const customers = pgTable('customer', {
+  id: serial('id').unique(),
+  Guid: uuid("Guid").primaryKey(),
+  mobile: varchar('mobile', { length: 10 }),
+  first_name: text("first_name"),
+  last_name: text("last_name"),
+  middle_name: text("middle_name"),
+  gender: text("gender"),
+  dob: date("dob"),
+  membership_id: uuid('membership_id').references(() => membershipData.Guid),
+  start_at: date('start_at'),
+  expires_at: date('expires_at'),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true })
+});
+
+export default customers;
+
+export type CustomersTable = typeof customers;
+export type Customer = typeof customers.$inferSelect;
+export type NewCustomer = typeof customers.$inferInsert;
+
+explanation:
+------------
+1. **id** - Auto-generated sequential number with unique value (SERIAL type).
+2. **Guid** - UUID (Universally Unique Identifier), serves as the primary key for each row.
+3. **mobile** - Customer's mobile/phone number (optional, max 10 characters).
+4. **first_name** - First name of the customer (optional).
+5. **last_name** - Last name of the customer (optional).
+6. **middle_name** - Middle name of the customer (optional).
+7. **gender** - Gender of the customer (optional).
+8. **dob** - Date of birth of the customer (optional).
+9. **membership_id** - Foreign key reference to the membershipData table's Guid. Links the customer to their membership plan (optional).this id will be saved when the customer buy the membership.
+10. **start_at** - Date when the customer's membership started (optional).
+11. **expires_at** - Date when the customer's membership expires (optional).
+
+
+## 3. gatewayTransaction.ts :
+
+This table is used to store the membership paid amount transactions.
+
+Schema:
+------
+
+import { integer, pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+
+const gatewayTranscation = pgTable('gatewayTranscation', {
+    id: serial('id').unique(),
+    Guid: uuid("Guid").primaryKey(),
+    mobile: text('mobile'),
+    order_id: text("order_id"),
+    gateway_id: text("gateway_id"),
+    amount: integer("Amount"),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+    deleted_at: timestamp('deleted_at', { withTimezone: true })
+});
+
+export default gatewayTranscation;
+
+export type gatewayTranscationTable = typeof gatewayTranscation;
+export type GatewayTranscation = typeof gatewayTranscation.$inferSelect;
+export type NewGatewayTranscation = typeof gatewayTranscation.$inferInsert;
+
+explanation:
+-----------
+1. **id** - Auto-generated sequential number with unique value (SERIAL type).
+2. **Guid** - UUID (Universally Unique Identifier), serves as the primary key for each row.
+3. **mobile** - Customer's mobile/phone number associated with the transaction (optional).
+4. **order_id** - Unique identifier for the customer's order (optional).
+5. **gateway_id** - Payment gateway transaction ID or reference number (optional).
+6. **amount** - Transaction amount in integer format (optional). Typically stored in smallest currency unit (e.g., cents/paise).
+
+## 4. membershipData.ts :
+
+This table is used to store the membershipData
+
+Schema:
+-------
+
+import { pgTable, text, serial, integer, timestamp, uuid, json } from "drizzle-orm/pg-core"
+import { benifits } from "../../types/app.types"
+export const membershipData = pgTable('membership_Data', {
+    id: serial('membership_id').primaryKey(),
+    Guid: uuid("membership_guid").unique(),
+    price: integer('price'),
+    title: text('title'),
+    description: text('description'),
+    special_price: integer('special_price'),
+    discount: text('discount_on_all'),
+    membership_url: text('membership_url'),
+    membership_benifits: json('benifits').$type<benifits[]>(),
+    created_at: timestamp('created_at').defaultNow(),
+    updated_at: timestamp('updated_at').defaultNow(),
+    deleted_at: timestamp('deleted_at'),
+})
+
+export type MembershipDataTable = typeof membershipData;
+export type MembershipData = typeof membershipData.$inferSelect;
+export type NewMembershipData = typeof membershipData.$inferInsert;
+
+explanation:
+------------
+1. **id** - Auto-generated sequential number serving as the primary key (SERIAL type).
+2. **Guid** - UUID (Universally Unique Identifier) with unique constraint for alternative identification.
+3. **price** - Original price of the membership plan (optional). Example: 5000 (₹5000).
+4. **title** - Title/name of the membership plan (optional). Example: "Prime Care Plan".
+5. **description** - Detailed description of the membership benefits and features (optional).
+6. **special_price** - Discounted/promotional price for the membership plan (optional). Example: 999 (₹999).
+7. **discount** - Text description of discount benefits for membership holders (optional). Example: "10% only for diagnostics".
+8. **membership_url** - URL or path to the membership banner image (optional).
+9. **membership_benifits** - JSON array containing structured benefit details for the membership plan (optional). Typed as `benifits[]` array.
+
+## 5. otp.ts :
+Now this table is not using
+
+## 6. rewards.ts :
+
+This is used to store the the total spent amount,total rewards,rewards used,reverted rewards of the customer
+
+Schema:
+-------
+
+import { serial, timestamp,  uuid, varchar, pgTable, numeric } from "drizzle-orm/pg-core";
+import customers from "./customer";
+
+export const rewards = pgTable("reward", {
+  id: serial('id').unique(),
+  Guid: uuid("Guid").primaryKey(),
+  mobile: varchar("mobile",{ length: 10 }).notNull(),
+  customer_id: uuid("customer_id").notNull().references(() => customers?.Guid),
+  total_rewards: numeric('total_rewards', { precision: 10, scale: 2 }).default("0"),
+  rewards_used: numeric('rewards_used', { precision: 10, scale: 2 }).default("0"),
+  reverted_rewards: numeric('reverted_rewards', { precision: 10, scale: 2 }).default("0"),
+  spent_amount: numeric('spent_amount', { precision: 10, scale: 2 }),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true })
+})
+
+export type RewardTable = typeof rewards;
+export type Reward = typeof rewards.$inferSelect;
+export type NewReward = typeof rewards.$inferInsert;
+
+explanation:
+-----------
+1. **id** - Auto-generated sequential number with unique value (SERIAL type).
+2. **Guid** - UUID (Universally Unique Identifier), serves as the primary key for each row.
+3. **mobile** - Customer's mobile/phone number (required, max 10 characters).
+4. **customer_id** - Foreign key reference to the customers table's Guid. Links the reward record to a specific customer (required).
+5. **total_rewards** - Total accumulated reward points earned by the customer (format: XXXXXXXX.XX). Defaults to "0".
+6. **rewards_used** - Total reward points redeemed/used by the customer from their total rewards (format: XXXXXXXX.XX). Defaults to "0".
+7. **reverted_rewards** - Reward points that were reversed/returned to the customer (format: XXXXXXXX.XX). Defaults to "0".
+8. **spent_amount** - Total amount spent by the customer across all transactions (optional, format: XXXXXXXX.XX).
+
+## 7. transactions.ts :
+
+This table is used to store all customer transactions, tracking both reward points earned and reward points redeemed for each transaction.
+
+Schema:
+------
+import { serial, boolean, timestamp, text, uuid, varchar, pgTable, numeric, pgEnum } from "drizzle-orm/pg-core";
+import customers from "./customer";
+import { brands } from "./brands";
+export const paymentModeEnum = pgEnum('payment_mode', ['Cash', 'Online', 'Free']);
+
+export const transactions = pgTable("transactions", {
+  id: serial('id').unique(),
+  Guid: uuid("Guid").primaryKey(),
+  mobile: varchar("mobile", { length: 10 }).notNull(),
+  customer_id: uuid("customer_id").notNull().references(() => customers?.Guid),
+  brand_id: uuid("brand_id").references(() => brands?.Guid),
+  trnsc_id: text("trnsc_id"),
+  order_id: text("order_id"),
+  trnsc_amount: numeric('trnsc_amount', { precision: 10, scale: 2 }).default("0"),
+  remarks: text('remarks'),
+  rewards_gain: numeric('rewards_gain', { precision: 10, scale: 2 }).default("0"),
+  rewards_used: numeric('rewards_used', { precision: 10, scale: 2 }).default("0"),
+  is_reverted: boolean('is_reverted').default(false),
+  status: text('status').default('Successful'),
+  reference_id: text('reference_id').default(''),
+  reference_code : text('reference_code'),
+  payment_mode :  paymentModeEnum("payment_mode"),
+  actual_price: numeric('actual_price', { precision: 10, scale: 2 }).default("0"),
+  amount : numeric('amount'),
+  collected_by : text('collected_by'),
+  collected_at : timestamp('collected_at', { withTimezone: true }),
+  taking_rewards : numeric('taking_rewards', { precision: 10, scale: 2 }).default("0"),
+  net_paid_amount: numeric('net_paid_amount', { precision: 10, scale: 2 }).default("0"),
+  created_by: text('created_by'),
+  updated_by: text('updated_by'),
+  admin_approval_by: uuid('admin_approval_by'),
+  admin_approval_at: timestamp('admin_approval_at', { withTimezone: true }),
+  admin_approval_status: text('admin_approval_status'),
+  deleted_by: text('deleted_by'),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true })
+})
+
+export default transactions;
+
+export type TransactionTable = typeof transactions;
+export type Transaction = typeof transactions.$inferSelect;
+export type NewTransaction = typeof transactions.$inferInsert;
+
+explanation:
+------------
+1. **id** - Auto-generated sequential number with unique value (SERIAL type).
+2. **Guid** - UUID (Universally Unique Identifier), serves as the primary key for each row.
+3. **mobile** - Customer's mobile/phone number (required, max 10 characters).
+4. **customer_id** - Foreign key reference to the customers table's Guid. Links the transaction to a specific customer (required).
+5. **brand_id** - Foreign key reference to the brands table's Guid. Links the transaction to a specific brand (optional).
+6. **trnsc_id** - Transaction ID for each order after the customer takes membership (optional).
+7. **order_id** - Order ID for the particular transaction (optional).
+8. **trnsc_amount** - Transaction amount for the particular order (format: XXXXXXXX.XX). Defaults to "0".
+9. **remarks** - Additional notes or comments for each order transaction (optional).
+10. **rewards_gain** - Reward points earned on this transaction (format: XXXXXXXX.XX). Defaults to "0".
+11. **rewards_used** - Reward points redeemed/used for this transaction (format: XXXXXXXX.XX). Defaults to "0".
+12. **is_reverted** - Boolean flag indicating if the transaction was cancelled. True = cancelled, False = active. Defaults to false.
+13. **status** - Transaction status (e.g., "Successful", "Cancelled"). Defaults to "Successful".
+14. **reference_id** - Reference ID stored for cancelled transactions (optional). Defaults to empty string.
+15. **reference_code** - Order number/reference code for the transaction (optional).
+16. **payment_mode** - Payment method used (enum values: 'Cash', 'Online', 'Free') (optional).
+17. **actual_price** - Original price of the service/test before any discounts (format: XXXXXXXX.XX). Example: 50.00. Defaults to "0".
+18. **amount** - Membership plan amount if membership was purchased in this order (format: XXXXXXXX.XX). Example: 999.00 (optional).
+19. **collected_by** - Name or identifier of the person who collected the payment (optional).
+20. **collected_at** - Timestamp with timezone when the payment was collected (optional).
+21. **taking_rewards** - this field is used to take the reward back when customer cancelled the order which is used rewards.
+22. **net_paid_amount** - Net amount paid for cancelled online transactions, used for refund processing (format: XXXXXXXX.XX). Defaults to "0".
+23. **created_by** - Username or identifier of the user who created this transaction record (optional).
+24. **updated_by** - Username or identifier of the user who last updated this transaction record (optional).
+25. **deleted_by** - Username or identifier of the user who soft-deleted this transaction record (optional).
+26. **created_at** - Timestamp with timezone when the record was created. Automatically set to current time.
+27. **updated_at** - Timestamp with timezone when the record was last updated. Initially set to creation time.
+28. **deleted_at** - Timestamp with timezone when the record was soft-deleted. NULL indicates the record is active (optional).
+29. **admin_approval_by** - UUID of the admin who approved this transaction (optional).
+30. **admin_approval_at** - Timestamp with timezone when the admin approved this transaction (optional).
+31. **admin_approval_status** - Status of admin approval for this transaction (ex:Approve,Reject).
+
+
+
+## Tables which are deleting :
+## 1. otp.ts :
+this table is not using now.
+
+Schema:
+-------
+
+import { pgTable, serial, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+
+const otp = pgTable('otp', {
+  id: serial('id').unique(),
+  Guid: uuid("Guid").primaryKey(),
+  mobile: varchar('mobile',{ length: 10 }),
+  otp: varchar("otp",{ length: 6 }),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true })
+});
+
+export default otp;
+
+export type OtpTable = typeof otp;
+export type Otp = typeof otp.$inferSelect;
+export type NewOtp = typeof otp.$inferInsert;
+
+
+
+
+
+
+
